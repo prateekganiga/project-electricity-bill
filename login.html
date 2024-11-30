@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Electricity Bill Management</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>Electricity Bill Management</header>
+    <div class="container">
+        <form id="login-form">
+            <label for="login-username">Username</label>
+            <input type="text" id="login-username" name="username" required>
+
+            <label for="login-password">Password</label>
+            <input type="password" id="login-password" name="password" required>
+
+            <p>Don't have an account? <a href="index.html">Click here</a></p>
+            <button type="submit">Login</button>
+        </form>
+
+        <p id="login-error" class="hidden" style="color: red;">Invalid credentials. Please try again.</p>
+    </div>
+
+    <script>
+        const BASE_URL = 'http://localhost:3000'; // Backend server URL
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const loginForm = document.getElementById('login-form');
+            if (loginForm) {
+                loginForm.addEventListener('submit', (event) => {
+                    event.preventDefault();
+                    const username = document.getElementById('login-username').value;
+                    const password = document.getElementById('login-password').value;
+
+                    fetch(`${BASE_URL}/login`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ username, password }),
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Store token and userId in localStorage
+                            localStorage.setItem('token', data.token);
+                            localStorage.setItem('userId', data.userId);  // Store the userId from the response
+                            alert('Login successful!');
+                            window.location.href = "welcome.html"; // Redirect to the welcome page
+                        } else {
+                            document.getElementById('login-error').classList.remove('hidden');
+                        }
+                    })
+                    .catch(err => console.error('Error:', err));
+                });
+            }
+        });
+    </script>
+</body>
+</html>

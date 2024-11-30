@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome - Electricity Bill Management</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <h2>Welcome</h2>
+    <p class="all-bill"><a href="Allbills.html">All Bills</a></p>
+    <div id="billList"></div>
+    <button onclick="logout()">Logout</button>
+
+    <script>
+        const BASE_URL = 'http://localhost:3000'; // Backend server URL
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const userId = localStorage.getItem('userId');
+            const token = localStorage.getItem('token');
+
+            if (!userId || !token) {
+                alert("User not logged in. Redirecting to login page.");
+                window.location.href = "login.html";
+                return;
+            }
+
+            fetchBills(userId, token);
+        });
+
+        function fetchBills(userId, token) {
+            fetch(`${BASE_URL}/bills/${userId}`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                const billList = document.getElementById('billList');
+                billList.innerHTML = ''; // Clear the bill list before adding new content
+        
+                if (data.success) {
+                    if (data.bills.length === 0) {
+                        billList.innerHTML = '<p class="no-msg">No pending bills.</p>'; // Show message if no bills are available
+                    } else {
+                        data.bills.forEach(bill => {
+                            const billElement = document.createElement('div');
+                            billElement.innerHTML = `
+                                <p><strong>Name:</strong> ${bill.name}</p>
+                                <p><strong>Units:</strong> ${bill.units}</p>
+                                <p><strong>Rate:</strong> ${bill.rate}</p>
+                                <p><strong>Total:</strong> ${bill.total}</p>
+                                <p><strong>Status:</strong> ${bill.status}</p>
+                                ${bill.status === 'Pending' ? `<button onclick="payBill(${bill.id})">Pay Now</button>` : ''}
+                                <hr />
+                            `;
+                            billList.appendChild(billElement);
+                        });
+                    }
+                } else {
+                    alert('Error fetching bills: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error fetching bills: ' + error.message);
+            });
+        }
+        
+
+        function payBill(billId) {
+            const token = localStorage.getItem('token');
+            fetch(`${BASE_URL}/pay-bill`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                },
+                body: JSON.stringify({ billId })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Payment successful!');
+                    fetchBills(localStorage.getItem('userId'), token);
+                } else {
+                    alert('Error paying bill: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error paying bill: ' + error.message);
+            });
+        }
+
+        function logout() {
+            localStorage.clear();
+            window.location.href = "login.html";
+        }
+    </script>
+</body>
+</html>

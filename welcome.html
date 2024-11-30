@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome - Electricity Bill Management</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h2>Welcome</h2>
+        <form id="billForm">
+            <input type="text" id="name" placeholder="Enter your name" required>
+            <input type="number" id="units" placeholder="Enter total units" required>
+            <input type="number" id="rate" placeholder="Enter rate per unit" required>
+            <button type="submit">Calculate Bill</button>
+        </form>
+
+        <div id="billDetails" class="hidden">
+            <h3>Bill Details</h3>
+            <p><strong>Name:</strong> <span id="outputName"></span></p>
+            <p><strong>Units:</strong> <span id="outputUnits"></span></p>
+            <p><strong>Rate:</strong> <span id="outputRate"></span></p>
+            <p><strong>Total:</strong> <span id="outputTotal"></span></p>
+            <button id="payment-btn">Proceed to Payment</button>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('billForm').addEventListener('submit', function (event) {
+            event.preventDefault();
+
+            const name = document.getElementById('name').value.trim();
+            const units = parseFloat(document.getElementById('units').value);
+            const rate = parseFloat(document.getElementById('rate').value);
+
+            if (units <= 0 || rate <= 0) {
+                alert("Units and rate must be greater than 0.");
+                return;
+            }
+
+            const total = (units * rate).toFixed(2);
+
+            document.getElementById('outputName').innerText = name;
+            document.getElementById('outputUnits').innerText = units;
+            document.getElementById('outputRate').innerText = rate;
+            document.getElementById('outputTotal').innerText = total;
+
+            document.getElementById('billDetails').classList.remove('hidden');
+
+            fetch('http://localhost:3000/calculate-bill', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                },
+                body: JSON.stringify({ name, units, rate })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        localStorage.setItem('billId', data.billId);
+                        alert('Bill calculated and stored successfully.');
+                    } else {
+                        alert('Error storing bill: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error calculating and storing bill: ' + error.message);
+                });
+        });
+
+        document.getElementById("payment-btn").addEventListener('click', () => {
+            window.location.href = "bill.html";
+        });
+    </script>
+</body>
+</html>

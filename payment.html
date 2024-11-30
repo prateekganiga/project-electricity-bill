@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment - Electricity Bill Management</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h2>Payment</h2>
+        <input type="number" id="payment" placeholder="Amount to pay" readonly>
+        <button type="submit" onclick="processPayment()">Pay Now</button>
+    </div>
+
+    <script>
+        // Retrieve calculated total from localStorage and set it to payment input
+        const totalBill = localStorage.getItem('calculatedTotal');
+        document.getElementById('payment').value = totalBill;
+
+        // Handle the payment logic
+        function processPayment() {
+            const billId = localStorage.getItem('billId');
+            const paymentAmount = document.getElementById('payment').value;
+
+            if (!billId || !paymentAmount) {
+                alert('Invalid bill or payment amount.');
+                return;
+            }
+
+            // Update bill status to "Paid"
+            fetch('/pay-bill', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`  // JWT token
+                },
+                body: JSON.stringify({ billId })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Payment Successful');
+                    // Redirect to bill page
+                    window.location.href = "bill.html";
+                } else {
+                    alert('Error processing payment: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error processing payment: ' + error.message);
+            });
+        }
+    </script>
+</body>
+</html>
