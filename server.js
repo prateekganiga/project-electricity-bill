@@ -12,7 +12,7 @@ const SECRET_KEY = 'your_jwt_secret';
 // MySQL Database Connection
 const db = mysql.createConnection({
     host: 'localhost',
-    user: 'root', // Your MySQL username
+    user: 'root', // Your MySQL username prajay
     password: 'prateek261103', // Your MySQL password
     database: 'ProjectPrajay'
 });
